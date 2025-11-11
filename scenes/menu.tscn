@@ -1,0 +1,88 @@
+[gd_scene load_steps=4 format=3 uid="uid://mlhip4uqxiv4"]
+
+[ext_resource type="Script" uid="uid://dmvch0k4jfwe2" path="res://scripts/menu.gd" id="1_con2f"]
+[ext_resource type="FontFile" uid="uid://dc3o168saxj7l" path="res://fonts/VCR_OSD_MONO_1.001.ttf" id="1_vjb58"]
+[ext_resource type="Texture2D" uid="uid://dgg6cjbyicxdv" path="res://menu_background.png" id="2_con2f"]
+
+[node name="Menu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_con2f")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -101.0
+offset_top = 55.0
+offset_right = 101.0
+offset_bottom = 187.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Start" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+focus_neighbor_top = NodePath("../Credits")
+theme_override_fonts/font = ExtResource("1_vjb58")
+theme_override_font_sizes/font_size = 24
+text = "Gamble"
+
+[node name="Settings" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_vjb58")
+theme_override_font_sizes/font_size = 24
+text = "Settings
+"
+
+[node name="Quit" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_vjb58")
+theme_override_font_sizes/font_size = 24
+text = "Quit"
+
+[node name="Credits" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+focus_neighbor_bottom = NodePath("../Start")
+theme_override_fonts/font = ExtResource("1_vjb58")
+theme_override_font_sizes/font_size = 24
+text = "Credits
+"
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -244.0
+offset_top = -123.5
+offset_right = 244.0
+offset_bottom = -66.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("1_vjb58")
+theme_override_font_sizes/font_size = 64
+text = "CASINO ESCAPE"
+
+[node name="TextureRect" type="TextureRect" parent="."]
+show_behind_parent = true
+light_mask = 512
+visibility_layer = 512
+layout_mode = 0
+offset_right = 1151.0
+offset_bottom = 649.0
+texture = ExtResource("2_con2f")
+expand_mode = 2
+
+[connection signal="pressed" from="VBoxContainer/Start" to="." method="_on_start_pressed"]
+[connection signal="pressed" from="VBoxContainer/Settings" to="." method="_on_settings_pressed"]
+[connection signal="pressed" from="VBoxContainer/Quit" to="." method="_on_quit_pressed"]
+[connection signal="pressed" from="VBoxContainer/Credits" to="." method="_on_credits_pressed"]

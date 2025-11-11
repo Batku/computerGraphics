@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://cmsly06b5ikvw"]
+
+[ext_resource type="Script" uid="uid://c5t30lvu8utld" path="res://scenes/procgen.gd" id="1_ockw8"]
+[ext_resource type="PackedScene" uid="uid://cc1tym38r2iso" path="res://scenes/Player.tscn" id="2_q7wdx"]
+
+[node name="Procgen" type="Node3D" node_paths=PackedStringArray("player")]
+script = ExtResource("1_ockw8")
+player = NodePath("Player")
+
+[node name="Player" parent="." instance=ExtResource("2_q7wdx")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.1401339, 0)

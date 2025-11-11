@@ -1,0 +1,50 @@
+[gd_scene load_steps=8 format=3 uid="uid://dk1qeimeumbqt"]
+
+[ext_resource type="PackedScene" uid="uid://cc1tym38r2iso" path="res://scenes/Player.tscn" id="1_5s5h1"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_p7qo8"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5s5h1"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_5s5h1"]
+size = Vector3(1.9883423, 1, 1.9824829)
+
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_p7qo8"]
+
+[sub_resource type="Sky" id="Sky_jsjgk"]
+sky_material = SubResource("PanoramaSkyMaterial_p7qo8")
+
+[sub_resource type="Environment" id="Environment_m4sql"]
+background_mode = 1
+background_color = Color(5.8719515e-06, 0.55492264, 0.75005066, 1)
+background_energy_multiplier = 0.84
+sky = SubResource("Sky_jsjgk")
+ambient_light_source = 2
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_energy = 0.84
+
+[node name="PlayerTest" type="Node3D"]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.955243, 5.8790874, 0)
+light_energy = 1.622
+sky_mode = 1
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+transform = Transform3D(0.9999998, 0, 0, 0, 0.9999999, 0, 0, 0, 0.9999998, 0, 0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D"]
+transform = Transform3D(25.620005, 0, 0, 0, 1.0000001, 0, 0, 0, 25.630003, 0, 0, 0)
+mesh = SubResource("PlaneMesh_p7qo8")
+skeleton = NodePath("../..")
+surface_material_override/0 = SubResource("StandardMaterial3D_5s5h1")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+transform = Transform3D(25.618206, 0, 0, 0, 0.09999474, 0, 0, 0, 25.628653, 0, 0, 0)
+shape = SubResource("BoxShape3D_5s5h1")
+
+[node name="Player" parent="." instance=ExtResource("1_5s5h1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.1401339, 0)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_m4sql")

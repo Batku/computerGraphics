@@ -25,6 +25,20 @@ enum CellType {
 	CORRIDOR
 }
 
+func create_static_body_with_collision(mesh: Mesh, position: Vector3, rotation: Vector3 = Vector3.ZERO):
+	var body = StaticBody3D.new()
+	body.position = position
+	body.rotation = rotation
+
+	var collider = CollisionShape3D.new()
+	var shape = mesh.create_trimesh_shape()
+	collider.shape = shape
+
+	body.add_child(collider)
+	add_child(body)
+	return body
+
+
 class GridCell:
 	var type: CellType = CellType.EMPTY
 	var room_id: int = -1
@@ -329,7 +343,7 @@ func teleport_player_to_start():
 	for room in rooms:
 		if room.is_start:
 			var pos = room.get_world_center(cell_size, floor_height)
-			pos.y += 1.0
+			pos.y += 2.0
 			player.global_position = pos
 			return
 
@@ -382,6 +396,7 @@ func visualize_grid(floor: int):
 			
 			floor_instance.material_override = material
 			add_child(floor_instance)
+			create_static_body_with_collision(floor_mesh, floor_instance.position)
 			create_cell_walls(floor, x, y)
 	
 	for room in rooms:
@@ -414,6 +429,8 @@ func create_ceilings(floor: int):
 				)
 				ceiling_instance.material_override = ceiling_material
 				add_child(ceiling_instance)
+				create_static_body_with_collision(ceiling_mesh, ceiling_instance.position)
+
 
 @warning_ignore("shadowed_global_identifier")
 func create_cell_walls(floor: int, x: int, y: int):
@@ -445,6 +462,8 @@ func create_wall(pos: Vector3, size: Vector3, material: StandardMaterial3D):
 	wall_instance.position = pos
 	wall_instance.material_override = material
 	add_child(wall_instance)
+	# prolly works
+	create_static_body_with_collision(wall_mesh, pos)
 
 func create_stairs_visual(room: Room):
 	var stair_material = StandardMaterial3D.new()
@@ -498,6 +517,7 @@ func create_stairs_visual(room: Room):
 		step_instance.rotation.y = rotation_y
 		step_instance.material_override = stair_material
 		add_child(step_instance)
+		create_static_body_with_collision(step, step_instance.position)
 
 func add_casino_props():
 	add_slot_machines()
@@ -517,6 +537,8 @@ func get_room_by_id(room_id: int) -> Room:
 
 func clear_casino():
 	for child in get_children():
+		if child == player:
+			continue
 		child.queue_free()
 	
 	grids.clear()

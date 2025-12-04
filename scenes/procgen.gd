@@ -42,6 +42,7 @@ func create_static_body_with_collision(mesh: Mesh, position: Vector3, rotation: 
 class GridCell:
 	var type: CellType = CellType.EMPTY
 	var room_id: int = -1
+	var cor_id: int = -1
 	var has_stairs: bool = false
 	var has_prop: bool = false
 	
@@ -49,6 +50,14 @@ class GridCell:
 		type = t
 		room_id = rid
 
+class Corridor:
+	var id: int;
+	var room1: Room;
+	var room2: Room;
+	func _init(cid: int, r1: Room, r2: Room):
+		id = cid;
+		room1 = r1;
+		room2 = r2;
 class Room:
 	var id: int
 	var grid_x: int
@@ -89,6 +98,7 @@ class Room:
 
 var grids: Array[Array] = []
 var rooms: Array[Room] = []
+var corridors: Array[Corridor] = []
 var room_counter: int = 0
 
 func _ready():
@@ -226,7 +236,8 @@ func connect_rooms_on_floor(floor: int):
 func create_corridor(room1: Room, room2: Room, floor: int):
 	room1.connections.append(room2.id)
 	room2.connections.append(room1.id)
-	
+	var cor = Corridor.new(corridors.size(), room1, room2);
+	corridors.append(cor)
 	var start = room1.get_center_cell()
 	var end = room2.get_center_cell()
 	var current = start
@@ -235,12 +246,14 @@ func create_corridor(room1: Room, room2: Room, floor: int):
 	while current.x != end.x:
 		if grids[floor][current.y][current.x].type == CellType.EMPTY:
 			grids[floor][current.y][current.x].type = CellType.CORRIDOR
+			grids[floor][current.y][current.x].cor_id = cor.id;
 		current.x += step_x
 	
 	var step_y = 1 if end.y > start.y else -1
 	while current.y != end.y:
 		if grids[floor][current.y][current.x].type == CellType.EMPTY:
 			grids[floor][current.y][current.x].type = CellType.CORRIDOR
+			grids[floor][current.y][current.x].cor_id = cor.id;
 		current.y += step_y
 
 func add_stairs():
@@ -433,29 +446,159 @@ func create_ceilings(floor: int):
 				add_child(ceiling_instance)
 				create_static_body_with_collision(ceiling_mesh, ceiling_instance.position)
 
+func handle_corridor_neighbor(
+	grids,
+	corridors,
+	grid_width: int,
+	grid_height: int,
+	floor: int,
+	x: int,
+	y: int,
+	nx: int,
+	ny: int,
+	wall_pos: Vector3,
+	wall_size: Vector3,
+	wall_material: StandardMaterial3D,
+	unlock_material: StandardMaterial3D
+) -> void:
+	var cell = grids[floor][y][x]
+	var cor = corridors[cell.cor_id]
+	var corRooms: Array[int] = []
+	corRooms.append(cor.room1.id)
+	corRooms.append(cor.room2.id)
 
+	if nx < 0 or ny < 0 or nx >= grid_width or ny >= grid_height:
+		create_wall(wall_pos, wall_size, wall_material)
+		return
+
+	var ncell = grids[floor][ny][nx]
+
+	#corridor
+	if ncell != null and ncell.type == CellType.CORRIDOR:
+		return
+
+	#ROOM / EMPTY / null
+	if ncell == null:
+		create_wall(wall_pos, wall_size, wall_material)
+		return
+
+	if ncell.type == CellType.ROOM:
+		create_unlockable_wall(wall_pos, wall_size, unlock_material)
+		return
+
+	if ncell.type == CellType.EMPTY:
+		create_wall(wall_pos, wall_size, wall_material)
+		return
+
+	create_wall(wall_pos, wall_size, wall_material)
 @warning_ignore("shadowed_global_identifier")
 func create_cell_walls(floor: int, x: int, y: int):
 	var wall_material = StandardMaterial3D.new()
 	wall_material.albedo_color = Color(0.3, 0.3, 0.3)
+	var unlock_material = StandardMaterial3D.new()
+	unlock_material.albedo_color = Color(0.776, 0.11, 0.212, 0.733)
+	unlock_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	unlock_material.flags_transparent = true
+	unlock_material.flags_use_alpha_scissor = false
+	var is_coridor = grids[floor][y][x].type == CellType.CORRIDOR;
 	
 	var y_pos = floor * floor_height + wall_height / 2.0
 	var world_x = x * cell_size + cell_size / 2.0
 	var world_z = y * cell_size + cell_size / 2.0
-	
-	if y == 0 or grids[floor][y - 1][x].type == CellType.EMPTY:
-		create_wall(Vector3(world_x, y_pos, y * cell_size), Vector3(cell_size, wall_height, wall_thickness), wall_material)
-	
-	if y == grid_height - 1 or grids[floor][y + 1][x].type == CellType.EMPTY:
-		create_wall(Vector3(world_x, y_pos, (y + 1) * cell_size), Vector3(cell_size, wall_height, wall_thickness), wall_material)
-	
-	if x == 0 or grids[floor][y][x - 1].type == CellType.EMPTY:
-		create_wall(Vector3(x * cell_size, y_pos, world_z), Vector3(wall_thickness, wall_height, cell_size), wall_material)
-	
-	if x == grid_width - 1 or grids[floor][y][x + 1].type == CellType.EMPTY:
-		create_wall(Vector3((x + 1) * cell_size, y_pos, world_z), Vector3(wall_thickness, wall_height, cell_size), wall_material)
+	if is_coridor:
+		# NORTH
+		handle_corridor_neighbor(
+			grids,
+			corridors,
+			grid_width,
+			grid_height,
+			floor,
+			x,
+			y,
+			x,
+			y - 1,
+			Vector3(world_x, y_pos, y * cell_size),
+			Vector3(cell_size, wall_height, wall_thickness),
+			wall_material,
+			unlock_material
+		)
+
+		# SOUTH
+		handle_corridor_neighbor(
+			grids,
+			corridors,
+			grid_width,
+			grid_height,
+			floor,
+			x,
+			y,
+			x,
+			y + 1,
+			Vector3(world_x, y_pos, (y + 1) * cell_size),
+			Vector3(cell_size, wall_height, wall_thickness),
+			wall_material,
+			unlock_material
+		)
+
+		# WEST
+		handle_corridor_neighbor(
+			grids,
+			corridors,
+			grid_width,
+			grid_height,
+			floor,
+			x,
+			y,
+			x - 1,
+			y,
+			Vector3(x * cell_size, y_pos, world_z),
+			Vector3(wall_thickness, wall_height, cell_size),
+			wall_material,
+			unlock_material
+		)
+
+		# EAST
+		handle_corridor_neighbor(
+			grids,
+			corridors,
+			grid_width,
+			grid_height,
+			floor,
+			x,
+			y,
+			x + 1,
+			y,
+			Vector3((x + 1) * cell_size, y_pos, world_z),
+			Vector3(wall_thickness, wall_height, cell_size),
+			wall_material,
+			unlock_material
+		)
+	else:
+		if y == 0 or grids[floor][y - 1][x].type == CellType.EMPTY:
+			create_wall(Vector3(world_x, y_pos, y * cell_size), Vector3(cell_size, wall_height, wall_thickness), wall_material)
+		
+		if y == grid_height - 1 or grids[floor][y + 1][x].type == CellType.EMPTY:
+			create_wall(Vector3(world_x, y_pos, (y + 1) * cell_size), Vector3(cell_size, wall_height, wall_thickness), wall_material)
+		
+		if x == 0 or grids[floor][y][x - 1].type == CellType.EMPTY:
+			create_wall(Vector3(x * cell_size, y_pos, world_z), Vector3(wall_thickness, wall_height, cell_size), wall_material)
+		
+		if x == grid_width - 1 or grids[floor][y][x + 1].type == CellType.EMPTY:
+			create_wall(Vector3((x + 1) * cell_size, y_pos, world_z), Vector3(wall_thickness, wall_height, cell_size), wall_material)
 
 func create_wall(pos: Vector3, size: Vector3, material: StandardMaterial3D):
+	var wall_mesh = BoxMesh.new()
+	wall_mesh.size = size
+	
+	var wall_instance = MeshInstance3D.new()
+	wall_instance.mesh = wall_mesh
+	wall_instance.position = pos
+	wall_instance.material_override = material
+	add_child(wall_instance)
+	# prolly works
+	create_static_body_with_collision(wall_mesh, pos)
+
+func create_unlockable_wall(pos: Vector3, size: Vector3, material: StandardMaterial3D):
 	var wall_mesh = BoxMesh.new()
 	wall_mesh.size = size
 	

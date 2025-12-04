@@ -1,6 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://cc1tym38r2iso"]
+[gd_scene load_steps=5 format=3 uid="uid://cc1tym38r2iso"]
 
 [ext_resource type="Script" uid="uid://t64n5ga5lv41" path="res://scripts/player.gd" id="1_p0vlq"]
+[ext_resource type="Script" uid="uid://co22jo8w1te5a" path="res://scenes/canvas_layer.gd" id="2_v6fml"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_5q5h1"]
 
@@ -18,3 +19,6 @@ debug_color = Color(0.8205056, 0.0017896938, 0.96662027, 0.41960785)
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6273259, 0)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+script = ExtResource("2_v6fml")

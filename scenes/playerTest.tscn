@@ -1,6 +1,7 @@
-[gd_scene load_steps=8 format=3 uid="uid://dk1qeimeumbqt"]
+[gd_scene load_steps=9 format=3 uid="uid://dk1qeimeumbqt"]
 
 [ext_resource type="PackedScene" uid="uid://cc1tym38r2iso" path="res://scenes/Player.tscn" id="1_5s5h1"]
+[ext_resource type="PackedScene" uid="uid://b6d7r8pldulyf" path="res://scenes/SlotMachine.tscn" id="2_p7qo8"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_p7qo8"]
 
@@ -43,8 +44,11 @@ surface_material_override/0 = SubResource("StandardMaterial3D_5s5h1")
 transform = Transform3D(25.618206, 0, 0, 0, 0.09999474, 0, 0, 0, 25.628653, 0, 0, 0)
 shape = SubResource("BoxShape3D_5s5h1")
 
-[node name="Player" parent="." instance=ExtResource("1_5s5h1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.1401339, 0)
+[node name="Player" parent="." groups=["player"] instance=ExtResource("1_5s5h1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.050244, 1.812593, 4.813268)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_m4sql")
+
+[node name="SlotMachine" parent="." instance=ExtResource("2_p7qo8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.255837, 0.0061218143, -1.653271)

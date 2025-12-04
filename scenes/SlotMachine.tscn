@@ -1,0 +1,53 @@
+[gd_scene load_steps=7 format=3 uid="uid://b6d7r8pldulyf"]
+
+[ext_resource type="Script" uid="uid://s1y4t7qui830" path="res://scenes/SlotMachine.gd" id="1_b6tw1"]
+[ext_resource type="ArrayMesh" uid="uid://bcbf2sty77eei" path="res://models/18830_Slot_Machine_with_Buttons_v1_NEW.obj" id="2_gx68h"]
+[ext_resource type="Script" uid="uid://blkpxuo47nphx" path="res://scenes/slotui.gd" id="3_fir66"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_04r4t"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_b6tw1"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_en4nw"]
+
+[node name="SlotMachine" type="Node3D"]
+script = ExtResource("1_b6tw1")
+
+[node name="model" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.027, 0, 0, 0, -1.1802075e-09, 0.027, 0, -0.027, -1.1802075e-09, 1.093881, 0, 0)
+mesh = ExtResource("2_gx68h")
+
+[node name="ScreenQuad" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.577, 0, 0, 0, 0.234, -0.042369246, 1.5394627, -0.16118872)
+mesh = SubResource("QuadMesh_04r4t")
+
+[node name="ScreenCollider" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.577, 0, 0, 0, 0.234, -0.042369246, 1.5394627, -0.16118872)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ScreenCollider"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 0.05, 0, 0, 0)
+shape = SubResource("BoxShape3D_b6tw1")
+
+[node name="InteractionArea" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionArea"]
+transform = Transform3D(7.99, 0, 0, 0, 7.99, 0, 0, 0, 7.99, 0, 0, -0.67)
+shape = SubResource("SphereShape3D_en4nw")
+
+[node name="ScreenViewport" type="SubViewport" parent="."]
+size = Vector2i(1024, 768)
+render_target_update_mode = 4
+
+[node name="SlotUI" type="Control" parent="ScreenViewport"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("3_fir66")
+
+[node name="ColorRect" type="ColorRect" parent="ScreenViewport/SlotUI"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0

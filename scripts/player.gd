@@ -8,7 +8,7 @@ extends CharacterBody3D
 @export_group("Camera")
 @export_range(0.0, 1.0) var mouse_sensitivity := 0.25
 @export var tilt_upper_limit := PI / 3.0
-@export var tilt_lower_limit := -PI / 8.0
+@export var tilt_lower_limit := -PI / 3.0
 
 var _mouse_delta := Vector2.ZERO
 var _gravity := -30.0

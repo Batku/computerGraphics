@@ -1,12 +1,19 @@
-# In your player HUD script
-func create_crosshair():
-	var crosshair = CenterContainer.new()
-	crosshair.set_anchors_preset(Control.PRESET_FULL_RECT)
-	
-	var dot = Label.new()
-	dot.text = "+"
-	dot.add_theme_font_size_override("font_size", 32)
-	dot.add_theme_color_override("font_color", Color.WHITE)
-	
-	crosshair.add_child(dot)
-	add_child(crosshair)
+extends CenterContainer
+
+@onready var crosshair_dot = $Dot
+@onready var crosshair_prompt = $Prompt
+
+func _ready():
+	set_anchors_preset(Control.PRESET_FULL_RECT)
+	show_normal()
+
+func show_normal():
+	if crosshair_dot:
+		crosshair_dot. visible = true
+	if crosshair_prompt:
+		crosshair_prompt.visible = false
+
+func show_interact_prompt(text: String = "[E] Interact"):
+	if crosshair_prompt:
+		crosshair_prompt.text = text
+		crosshair_prompt.visible = true

@@ -1,10 +1,12 @@
-[gd_scene load_steps=3 format=3 uid="uid://ccv7g1qxdotst"]
+[gd_scene load_steps=4 format=3 uid="uid://ccv7g1qxdotst"]
 
 [ext_resource type="Script" uid="uid://c5t30lvu8utld" path="res://scenes/procgen.gd" id="1_ockw8"]
+[ext_resource type="PackedScene" uid="uid://b6d7r8pldulyf" path="res://scenes/SlotMachine.tscn" id="2_ko3th"]
 [ext_resource type="PackedScene" uid="uid://cc1tym38r2iso" path="res://scenes/Player.tscn" id="2_q7wdx"]
 
 [node name="Procgen" type="Node3D" node_paths=PackedStringArray("player")]
 script = ExtResource("1_ockw8")
+slot_machine_scene = ExtResource("2_ko3th")
 player = NodePath("Player")
 
 [node name="Player" parent="." instance=ExtResource("2_q7wdx")]

@@ -98,13 +98,13 @@ func generate_casino():
 	clear_casino()
 	init_grids()
 	generate_rooms_on_grid(0)
-	copy_rooms_to_floor_1()
+	#copy_rooms_to_floor_1()
 	
-	@warning_ignore("shadowed_global_identifier")
-	for floor in range(2):
-		connect_rooms_on_floor(floor)
-	
-	add_stairs()
+	#@warning_ignore("shadowed_global_identifier")
+	#for floor in range(2):
+	#	connect_rooms_on_floor(floor)
+	connect_rooms_on_floor(0)
+	#add_stairs()
 	mark_start_and_end()
 	visualize_casino()
 	add_casino_props()
@@ -319,21 +319,23 @@ func find_nearest_corridor_direction(room: Room, floor: int) -> Vector2i:
 
 func mark_start_and_end():
 	var floor_0_rooms = []
-	var floor_1_rooms = []
+#	var floor_1_rooms = []
 	
 	for room in rooms:
 		if room.floor_level == 0:
 			floor_0_rooms.append(room)
-		else:
-			floor_1_rooms.append(room)
+#		else:
+#			floor_1_rooms.append(room)
 	
 	if floor_0_rooms.size() > 0:
 		floor_0_rooms.shuffle()
 		floor_0_rooms[0].is_start = true
-	
-	if floor_1_rooms.size() > 0:
-		floor_1_rooms.shuffle()
-		floor_1_rooms[0].is_end = true
+		while floor_0_rooms[0].is_start == true:
+			floor_0_rooms.shuffle()
+		floor_0_rooms[0].is_end = true
+#	if floor_1_rooms.size() > 0:
+#		floor_1_rooms.shuffle()
+#		floor_1_rooms[0].is_end = true
 
 func teleport_player_to_start():
 	if not player:
@@ -524,7 +526,57 @@ func add_casino_props():
 	add_roulette_tables()
 
 func add_slot_machines():
-	pass
+	if not slot_machine_scene:
+		return
+	
+	for room in rooms:
+		if room.has_stairs or room.is_start or room.is_end:
+			continue
+		
+		var machines_placed = 0
+		var attempts = 0
+		
+		while machines_placed < slot_machines_per_room and attempts < 50:
+			attempts += 1
+			
+			var edge = randi() % 4
+			var x = 0
+			var y = 0
+			var rotation_y = 0.0
+			
+			match edge:
+				0:
+					x = randi_range(room.grid_x + 1, room.grid_x + room.width - 2)
+					y = room.grid_y
+					rotation_y = PI
+				1:
+					x = randi_range(room.grid_x + 1, room.grid_x + room.width - 2)
+					y = room.grid_y + room.height - 1
+					rotation_y = 0.0
+				2:
+					x = room.grid_x
+					y = randi_range(room.grid_y + 1, room.grid_y + room.height - 2)
+					rotation_y = PI / 2.0
+				3:
+					x = room.grid_x + room.width - 1
+					y = randi_range(room.grid_y + 1, room.grid_y + room.height - 2)
+					rotation_y = -PI / 2.0
+			
+			if grids[room.floor_level][y][x].has_prop:
+				continue
+			
+			var slot_machine = slot_machine_scene.instantiate()
+			add_child(slot_machine)
+			
+			slot_machine.global_position = Vector3(
+				x * cell_size + cell_size / 2.0,
+				room.floor_level * floor_height,
+				y * cell_size + cell_size / 2.0
+			)
+			slot_machine.rotation.y = rotation_y
+			
+			grids[room.floor_level][y][x].has_prop = true
+			machines_placed += 1
 
 func add_roulette_tables():
 	pass

@@ -445,12 +445,8 @@ func create_ceilings(floor: int):
 				ceiling_instance.material_override = ceiling_material
 				add_child(ceiling_instance)
 				create_static_body_with_collision(ceiling_mesh, ceiling_instance.position)
-
+@warning_ignore("shadowed_global_identifier")
 func handle_corridor_neighbor(
-	grids,
-	corridors,
-	grid_width: int,
-	grid_height: int,
 	floor: int,
 	x: int,
 	y: int,
@@ -508,10 +504,6 @@ func create_cell_walls(floor: int, x: int, y: int):
 	if is_coridor:
 		# NORTH
 		handle_corridor_neighbor(
-			grids,
-			corridors,
-			grid_width,
-			grid_height,
 			floor,
 			x,
 			y,
@@ -525,10 +517,6 @@ func create_cell_walls(floor: int, x: int, y: int):
 
 		# SOUTH
 		handle_corridor_neighbor(
-			grids,
-			corridors,
-			grid_width,
-			grid_height,
 			floor,
 			x,
 			y,
@@ -542,10 +530,6 @@ func create_cell_walls(floor: int, x: int, y: int):
 
 		# WEST
 		handle_corridor_neighbor(
-			grids,
-			corridors,
-			grid_width,
-			grid_height,
 			floor,
 			x,
 			y,
@@ -559,10 +543,6 @@ func create_cell_walls(floor: int, x: int, y: int):
 
 		# EAST
 		handle_corridor_neighbor(
-			grids,
-			corridors,
-			grid_width,
-			grid_height,
 			floor,
 			x,
 			y,
@@ -607,8 +587,8 @@ func create_unlockable_wall(pos: Vector3, size: Vector3, material: StandardMater
 	wall_instance.position = pos
 	wall_instance.material_override = material
 	add_child(wall_instance)
-	# prolly works
-	create_static_body_with_collision(wall_mesh, pos)
+	# collisions disabled for now
+	#create_static_body_with_collision(wall_mesh, pos)
 
 func create_stairs_visual(room: Room):
 	var stair_material = StandardMaterial3D.new()

@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=3 uid="uid://b6d7r8pldulyf"]
 
 [ext_resource type="Script" uid="uid://s1y4t7qui830" path="res://scenes/SlotMachine.gd" id="1_b6tw1"]
-[ext_resource type="ArrayMesh" uid="uid://bcbf2sty77eei" path="res://models/18830_Slot_Machine_with_Buttons_v1_NEW.obj" id="2_gx68h"]
+[ext_resource type="PackedScene" uid="uid://cc37ke1adr5h3" path="res://assets/Models/SlotMachine.glb" id="2_b6tw1"]
 [ext_resource type="Script" uid="uid://blkpxuo47nphx" path="res://scenes/slotui.gd" id="3_fir66"]
 
 [sub_resource type="QuadMesh" id="QuadMesh_04r4t"]
@@ -13,16 +13,14 @@
 [node name="SlotMachine" type="Node3D"]
 script = ExtResource("1_b6tw1")
 
-[node name="model" type="MeshInstance3D" parent="."]
-transform = Transform3D(0.027, 0, 0, 0, -1.1802075e-09, 0.027, 0, -0.027, -1.1802075e-09, 1.093881, 0, 0)
-mesh = ExtResource("2_gx68h")
+[node name="SlotMachine" parent="." instance=ExtResource("2_b6tw1")]
 
 [node name="ScreenQuad" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.577, 0, 0, 0, 0.234, -0.042369246, 1.5394627, -0.16118872)
+transform = Transform3D(0.67765087, 0, 0, 0, 0.7696218, 0, 0, 0, 0.234, 0.026687846, 1.4888879, -0.36200386)
 mesh = SubResource("QuadMesh_04r4t")
 
 [node name="ScreenCollider" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.577, 0, 0, 0, 0.234, -0.042369246, 1.5394627, -0.16118872)
+transform = Transform3D(0.67765087, 0, 0, 0, 0.7696218, 0, 0, 0, 0.234, 0.026687846, 1.4888879, -0.36200386)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="ScreenCollider"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 0.05, 0, 0, 0)

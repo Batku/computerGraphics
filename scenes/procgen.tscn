@@ -1,16 +1,23 @@
-[gd_scene load_steps=8 format=3 uid="uid://ccv7g1qxdotst"]
+[gd_scene load_steps=11 format=3 uid="uid://ccv7g1qxdotst"]
 
 [ext_resource type="Script" uid="uid://c5t30lvu8utld" path="res://scenes/procgen.gd" id="1_ockw8"]
 [ext_resource type="PackedScene" uid="uid://b6d7r8pldulyf" path="res://scenes/SlotMachine.tscn" id="2_ko3th"]
 [ext_resource type="PackedScene" uid="uid://cc1tym38r2iso" path="res://scenes/Player.tscn" id="2_q7wdx"]
+[ext_resource type="PackedScene" uid="uid://o7avjoh1kvct" path="res://scenes/roulettetable.tscn" id="3_s0l2l"]
 [ext_resource type="Material" uid="uid://clv0e6rdro881" path="res://assets/Materials/floor.tres" id="3_uv83e"]
+[ext_resource type="PackedScene" uid="uid://c84v1lw45jx4q" path="res://scenes/baccarat.tscn" id="4_0cqsq"]
 [ext_resource type="Material" uid="uid://r2yi5e4djxk0" path="res://assets/Materials/wall.tres" id="4_k803q"]
 [ext_resource type="Material" uid="uid://ddufqweo2bluw" path="res://assets/Materials/roof.tres" id="5_257qt"]
+[ext_resource type="PackedScene" uid="uid://b6qv14v0skg13" path="res://scenes/poker.tscn" id="5_nqswn"]
 [ext_resource type="PackedScene" uid="uid://i5vlr2bce8or" path="res://scenes/enemy.tscn" id="6_k803q"]
 
 [node name="Procgen" type="Node3D" node_paths=PackedStringArray("player")]
 script = ExtResource("1_ockw8")
 slot_machine_scene = ExtResource("2_ko3th")
+roulette_table_scene = ExtResource("3_s0l2l")
+baccarat_scene = ExtResource("4_0cqsq")
+poker_scene = ExtResource("5_nqswn")
+max_tables = 12
 player = NodePath("Player")
 floormat = ExtResource("3_uv83e")
 wallmat = ExtResource("4_k803q")

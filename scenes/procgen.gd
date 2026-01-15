@@ -12,11 +12,12 @@ extends Node3D
 @export var wall_height: float = 5.0
 @export var wall_thickness: float = 0.2
 @export var extra_corridor_chance: float = 0.1
-
 @export var slot_machine_scene: PackedScene
 @export var roulette_table_scene: PackedScene
+@export var baccarat_scene: PackedScene
+@export var poker_scene: PackedScene
 @export var slot_machines_per_room: int = 3
-@export var roulette_tables_per_floor: int = 2
+@export var max_tables: int = 2
 @export var player: Node3D
 @export var floormat: StandardMaterial3D
 @export var wallmat: StandardMaterial3D
@@ -506,7 +507,7 @@ func create_cell_walls(floor: int, x: int, y: int):
 	var wall_material = wallmat
 	#wall_material.albedo_color = Color(0.3, 0.3, 0.3)
 	var unlock_material = StandardMaterial3D.new()
-	unlock_material.albedo_color = Color(0.776, 0.11, 0.212, 0.733)
+	unlock_material.albedo_color = Color(0.776, 0.11, 0.212, 0.0)
 	unlock_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	unlock_material.flags_transparent = true
 	unlock_material.flags_use_alpha_scissor = false
@@ -660,7 +661,7 @@ func create_stairs_visual(room: Room):
 
 func add_casino_props():
 	add_slot_machines()
-	add_roulette_tables()
+	add_tables()
 
 func add_slot_machines():
 	if not slot_machine_scene:
@@ -715,8 +716,64 @@ func add_slot_machines():
 			grids[room.floor_level][y][x].has_prop = true
 			machines_placed += 1
 
-func add_roulette_tables():
-	pass
+func add_tables():
+	if not roulette_table_scene or not baccarat_scene or not poker_scene:
+		return
+
+	var tables_placed = 0
+	var attempts = 0
+
+	while tables_placed < max_tables and attempts < 100:
+		attempts += 1
+
+		if rooms.size() == 0:
+			break
+
+		var room = rooms[randi() % rooms.size()]
+		var x = randi_range(room.grid_x + 1, room.grid_x + room.width - 2)
+		var y = randi_range(room.grid_y + 1, room.grid_y + room.height - 2)
+
+		var can_place = true
+		for dy in range(2):
+			for dx in range(2):
+				var check_x = x + dx
+				var check_y = y + dy
+				if check_x >= grid_width or check_y >= grid_height:
+					can_place = false
+					break
+				if grids[0][check_y][check_x].has_prop or grids[0][check_y][check_x].type != CellType.ROOM:
+					can_place = false
+					break
+			if not can_place:
+				break
+
+		if not can_place:
+			continue
+
+		var table
+		match randi_range(0, 2):
+			0:
+				table = roulette_table_scene.instantiate()
+			1:
+				table = baccarat_scene.instantiate()
+			2:
+				table = poker_scene.instantiate()
+
+		add_child(table)
+		print("made table")
+
+		table.global_position = Vector3(
+			(x + 1) * cell_size,
+			0 * floor_height,
+			(y + 1) * cell_size
+		)
+		table.rotation.y = randf() * TAU
+
+		for dy in range(2):
+			for dx in range(2):
+				grids[0][y + dy][x + dx].has_prop = true
+
+		tables_placed += 1
 
 func get_room_by_id(room_id: int) -> Room:
 	for room in rooms:

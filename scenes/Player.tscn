@@ -1,11 +1,28 @@
-[gd_scene load_steps=5 format=3 uid="uid://cc1tym38r2iso"]
+[gd_scene load_steps=7 format=3 uid="uid://cc1tym38r2iso"]
 
 [ext_resource type="Script" uid="uid://t64n5ga5lv41" path="res://scripts/player.gd" id="1_p0vlq"]
 [ext_resource type="Script" uid="uid://co22jo8w1te5a" path="res://scenes/canvas_layer.gd" id="2_v6fml"]
+[ext_resource type="Shader" uid="uid://linhb2axf1iv" path="res://scenes/player.gdshader" id="3_3li8b"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_5q5h1"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_p0vlq"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_mdl7e"]
+shader = ExtResource("3_3li8b")
+shader_parameter/vignette_intensity = 0.4
+shader_parameter/vignette_softness = 0.5
+shader_parameter/grain_amount = 0.15
+shader_parameter/grain_speed = 5.0
+shader_parameter/aberration_amount = 0.003
+shader_parameter/desaturation = 0.6
+shader_parameter/color_tint = Color(0.9, 0.85, 0.75, 1)
+shader_parameter/contrast = 1.15
+shader_parameter/brightness = -0.05
+shader_parameter/scanline_intensity = 0.1
+shader_parameter/scanline_count = 400.0
+shader_parameter/distortion_amount = 0.0
+shader_parameter/flicker_intensity = 0.03
 
 [node name="Player" type="CharacterBody3D" groups=["player"]]
 script = ExtResource("1_p0vlq")
@@ -20,5 +37,20 @@ debug_color = Color(0.8205056, 0.0017896938, 0.96662027, 0.41960785)
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6273259, 0)
 
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Camera3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.10031474, -0.18288833)
+directional_shadow_max_distance = 70.7
+sky_mode = 1
+
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 script = ExtResource("2_v6fml")
+
+[node name="shader?" type="ColorRect" parent="CanvasLayer"]
+material = SubResource("ShaderMaterial_mdl7e")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+metadata/_edit_use_anchors_ = true

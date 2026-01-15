@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://b6qv14v0skg13"]
+
+[ext_resource type="PackedScene" uid="uid://buumc27tebpaw" path="res://assets/Models/PokerTable.glb" id="1_qoub5"]
+
+[node name="Poker" type="Node3D"]
+
+[node name="PokerTable2" parent="." instance=ExtResource("1_qoub5")]

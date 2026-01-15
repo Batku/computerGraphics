@@ -17,20 +17,19 @@ var uv_offset_x: float = 0.0
 var uv_offset_y: float = 0.0
 
 var use_method_2: bool = false
-var use_direct_click: bool = true  # Toggle this if needed
+var use_direct_click: bool = true 
 
 signal slot_machine_activated
 signal slot_machine_deactivated
 
 func _ready():
-	print("\n🎰 SLOT MACHINE INIT")
 	
 	if not screen_quad or not screen_viewport or not slot_ui:
-		push_error("❌ Missing nodes!")
+		push_error("Missing nodes!")
 		return
 	
 	if not screen_collider:
-		push_error("❌ ScreenCollider not found!")
+		push_error("ScreenCollider not found!")
 		return
 	
 	screen_viewport.size = Vector2i(1920, 1080)
@@ -47,7 +46,6 @@ func _ready():
 	slot_ui.slot_finished.connect(_on_slot_finished)
 	slot_ui.leave_requested.connect(_on_leave_requested)
 	
-	print("✅ Ready")
 
 func setup_screen_material():
 	var material = StandardMaterial3D. new()
@@ -71,7 +69,7 @@ func _process(_delta):
 		
 		if Input.is_action_just_pressed("ui_focus_next"):  # TAB
 			use_method_2 = !use_method_2
-			print("\n🔄 Switched to UV Method ", 2 if use_method_2 else 1)
+			print("\nSwitched to UV Method ", 2 if use_method_2 else 1)
 		
 		if Input.is_action_just_pressed("ui_left"):
 			uv_scale_x -= 0.05
@@ -99,7 +97,7 @@ func _process(_delta):
 			changed = true
 		
 		if changed:
-			print("\n📐 UV: Scale(%. 2f, %.2f) Offset(%.2f, %. 2f)" % [uv_scale_x, uv_scale_y, uv_offset_x, uv_offset_y])
+			print("\nUV: Scale(%. 2f, %.2f) Offset(%.2f, %. 2f)" % [uv_scale_x, uv_scale_y, uv_offset_x, uv_offset_y])
 		
 		handle_mouse_on_screen()
 		
@@ -136,7 +134,6 @@ func send_click_to_screen():
 	if not player_camera:
 		return
 	
-	print("\nCLICK!")
 	
 	var viewport_size = get_viewport().get_visible_rect().size
 	var center = viewport_size / 2.0
@@ -215,7 +212,7 @@ func _on_body_entered(body: Node3D):
 		player_in_range = true
 		player_camera = find_camera_recursive(body)
 		if player_camera:
-			print("✅ Player in range")
+			print("Player in range")
 
 func find_camera_recursive(node: Node) -> Camera3D:
 	if node is Camera3D:
@@ -237,7 +234,6 @@ func activate_machine():
 	if is_active or not player_camera:
 		return
 	
-	print("\n🎰 ACTIVATING")
 	is_active = true
 	
 	slot_ui.initialize_game()
@@ -249,7 +245,6 @@ func deactivate_machine():
 	if not is_active:
 		return
 	
-	print("\n🚪 DEACTIVATING")
 	is_active = false
 	
 	slot_ui.set_interactive(false)

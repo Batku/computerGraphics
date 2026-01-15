@@ -4,31 +4,47 @@ extends Control
 var reel1_label: Label
 var reel2_label: Label
 var reel3_label: Label
-var balance_label: Label
 var bet_label: Label
 var win_label: Label
 var spin_button: Button
 var leave_button: Button
-var bet_buttons: Array = []
+var bet_buttons:  Array = []
 
 # Game state
 var current_bet: int = 25
 var is_spinning: bool = false
 var is_interactive: bool = false
 
-# Symbol definitions
+# Reel spin state
+var reel_spinning: Array = [false, false, false]
+var reel_stop_positions: Array = [0, 0, 0]
+var reel_labels: Array = []
+
+const COLOR_BG_DARK = Color(0.12, 0.1, 0.14, 1)
+const COLOR_BG_PANEL = Color(0.18, 0.15, 0.2, 1)
+const COLOR_RUST = Color(0.6, 0.35, 0.25, 1)
+const COLOR_DRIED_BLOOD = Color(0.5, 0.2, 0.18, 1)
+const COLOR_SICKLY_GREEN = Color(0.4, 0.65, 0.3, 1)
+const COLOR_DIRTY_GOLD = Color(0.75, 0.65, 0.35, 1)
+const COLOR_GRIME = Color(0.45, 0.4, 0.35, 1)
+const COLOR_PALE_TEXT = Color(0.85, 0.82, 0.78, 1)
+const COLOR_BRIGHT_TEXT = Color(0.95, 0.92, 0.88, 1)
+const COLOR_WARNING = Color(0.8, 0.4, 0.3, 1)
+
+
 const SYMBOLS = {
-	"cherry": {"char": "🍒", "weight": 25, "payout_3": 3, "payout_2": 1},
-	"lemon": {"char": "🍋", "weight": 20, "payout_3": 4, "payout_2": 1},
-	"orange": {"char": "🍊", "weight": 15, "payout_3": 5, "payout_2": 0},
-	"bell": {"char": "🔔", "weight": 12, "payout_3": 8, "payout_2": 0},
-	"star": {"char": "⭐", "weight": 10, "payout_3": 12, "payout_2": 0},
-	"bar": {"char": "BAR", "weight": 8, "payout_3": 15, "payout_2": 0},
-	"diamond": {"char": "💎", "weight": 5, "payout_3": 25, "payout_2": 0},
-	"seven": {"char": "7️", "weight": 4, "payout_3": 50, "payout_2": 0},
-	"crown": {"char": "👑", "weight": 1, "payout_3": 100, "payout_2": 0}
+	"skull": {"char": "💀", "weight": 30, "payout_3": 4, "payout_2": 2},
+	"eye": {"char":  "👁", "weight": 25, "payout_3":  5, "payout_2": 2},
+	"moth": {"char": "🦋", "weight": 18, "payout_3": 8, "payout_2": 0},
+	"bell": {"char": "🔔", "weight": 12, "payout_3": 12, "payout_2": 0},
+	"candle":  {"char": "🕯", "weight": 8, "payout_3": 20, "payout_2": 0},
+	"coffin":  {"char": "⚰", "weight": 5, "payout_3": 35, "payout_2": 0},
+	"diamond": {"char": "💎", "weight": 3, "payout_3": 60, "payout_2": 0},
+	"seven": {"char": "7", "weight":  2, "payout_3": 100, "payout_2": 0},
+	"demon": {"char": "👿", "weight": 1, "payout_3": 200, "payout_2":  0}
 }
 
+var symbol_keys: Array = []
 var reel_strips: Array = []
 
 # Signals
@@ -37,23 +53,22 @@ signal slot_finished
 signal leave_requested
 
 func _ready():
-	print("🎮 SlotUI initializing...")
 	
 	set_anchors_and_offsets_preset(Control. PRESET_FULL_RECT)
 	
+	symbol_keys = SYMBOLS.keys()
 	create_ui()
 	generate_reel_strips()
 	win_label.visible = false
 	
-	print("✅ SlotUI ready!")
 
 func create_ui():
-	"""Build the entire UI programmatically - CENTERED"""
+	"""Build the entire UI programmatically - HORROR THEME - LIGHTER"""
 	
-	# Background
+	# Dark background
 	var bg = ColorRect.new()
-	bg. color = Color(0.1, 0.1, 0.15, 1)
-	bg.set_anchors_and_offsets_preset(Control. PRESET_FULL_RECT)
+	bg.color = COLOR_BG_DARK
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 	
 	# CENTER CONTAINER
@@ -63,212 +78,220 @@ func create_ui():
 	
 	# Main vertical layout
 	var main_vbox = VBoxContainer.new()
-	main_vbox.add_theme_constant_override("separation", 20)
+	main_vbox.add_theme_constant_override("separation", 15)
 	center_container.add_child(main_vbox)
 	
-	# Title
+	# Title - ominous but readable
 	var title = Label.new()
-	title.text = "🎰 LUCKY SLOTS 🎰"
+	title.text = "⛧ FORTUNE'S END ⛧"
 	title. horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 80)
-	title.add_theme_color_override("font_color", Color. GOLD)
-	main_vbox. add_child(title)
+	title.add_theme_font_size_override("font_size", 64)
+	title.add_theme_color_override("font_color", COLOR_DIRTY_GOLD)
+	main_vbox.add_child(title)
+	
+	# Subtitle
+	var subtitle = Label.new()
+	subtitle.text = "- all bets are final -"
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	subtitle.add_theme_font_size_override("font_size", 24)
+	subtitle.add_theme_color_override("font_color", COLOR_PALE_TEXT)
+	main_vbox.add_child(subtitle)
+	
+	main_vbox.add_child(create_spacer(20))
+	
+	# Balance - brighter for readability
+
 	
 	main_vbox.add_child(create_spacer(30))
 	
-	# Balance
-	balance_label = Label.new()
-	balance_label.text = "Balance: $500"
-	balance_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	balance_label. add_theme_font_size_override("font_size", 48)
-	balance_label.add_theme_color_override("font_color", Color.WHITE)
-	main_vbox. add_child(balance_label)
+	# Reels container with border
+	var reel_container = PanelContainer.new()
+	var reel_container_style = StyleBoxFlat.new()
+	reel_container_style.bg_color = Color(0.08, 0.06, 0.1, 1)
+	reel_container_style.set_border_width_all(4)
+	reel_container_style.border_color = COLOR_RUST
+	reel_container_style.set_corner_radius_all(5)
+	reel_container.add_theme_stylebox_override("panel", reel_container_style)
+	main_vbox.add_child(reel_container)
 	
-	main_vbox.add_child(create_spacer(50))
+	var reel_margin = MarginContainer.new()
+	reel_margin.add_theme_constant_override("margin_left", 30)
+	reel_margin.add_theme_constant_override("margin_right", 30)
+	reel_margin.add_theme_constant_override("margin_top", 20)
+	reel_margin.add_theme_constant_override("margin_bottom", 20)
+	reel_container.add_child(reel_margin)
 	
 	# Reels
 	var reel_hbox = HBoxContainer.new()
-	reel_hbox. alignment = BoxContainer.ALIGNMENT_CENTER
-	reel_hbox.add_theme_constant_override("separation", 50)
-	main_vbox. add_child(reel_hbox)
+	reel_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	reel_hbox.add_theme_constant_override("separation", 30)
+	reel_margin.add_child(reel_hbox)
 	
+	reel_labels. clear()
 	for i in range(3):
 		var reel_panel = PanelContainer.new()
-		reel_panel.custom_minimum_size = Vector2(250, 250)
+		reel_panel.custom_minimum_size = Vector2(200, 200)
 		
 		var style = StyleBoxFlat.new()
-		style.bg_color = Color(0.2, 0.2, 0.25, 1)
-		style.set_border_width_all(5)
-		style.border_color = Color. GOLD
-		style.set_corner_radius_all(15)
+		style.bg_color = Color(0.05, 0.04, 0.06, 1)
+		style.set_border_width_all(3)
+		style.border_color = COLOR_GRIME
+		style.set_corner_radius_all(3)
 		reel_panel.add_theme_stylebox_override("panel", style)
 		
 		var reel_label = Label.new()
-		reel_label.text = "🎰"
+		reel_label.text = "?"
 		reel_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		reel_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		reel_label.add_theme_font_size_override("font_size", 120)
+		reel_label.add_theme_font_size_override("font_size", 100)
+		reel_label.add_theme_color_override("font_color", COLOR_BRIGHT_TEXT)
 		
 		reel_panel.add_child(reel_label)
 		reel_hbox.add_child(reel_panel)
-		
-		if i == 0:
-			reel1_label = reel_label
-		elif i == 1:
-			reel2_label = reel_label
-		else:
-			reel3_label = reel_label
+		reel_labels.append(reel_label)
 	
-	main_vbox.add_child(create_spacer(30))
+	reel1_label = reel_labels[0]
+	reel2_label = reel_labels[1]
+	reel3_label = reel_labels[2]
+	
+	main_vbox.add_child(create_spacer(15))
 	
 	# Win label
-	win_label = Label. new()
-	win_label. text = "WIN!"
+	win_label = Label.new()
+	win_label.text = ""
 	win_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	win_label. add_theme_font_size_override("font_size", 56)
-	win_label.add_theme_color_override("font_color", Color.GREEN)
-	win_label.custom_minimum_size = Vector2(0, 70)
+	win_label.add_theme_font_size_override("font_size", 46)
+	win_label.add_theme_color_override("font_color", COLOR_SICKLY_GREEN)
+	win_label.custom_minimum_size = Vector2(0, 55)
 	win_label.visible = false
 	main_vbox.add_child(win_label)
 	
 	# Bet label
-	bet_label = Label. new()
-	bet_label. text = "Bet: $25"
+	bet_label = Label.new()
+	bet_label.text = "WAGER: $25"
 	bet_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	bet_label. add_theme_font_size_override("font_size", 42)
-	bet_label.add_theme_color_override("font_color", Color.WHITE)
+	bet_label.add_theme_font_size_override("font_size", 36)
+	bet_label.add_theme_color_override("font_color", COLOR_BRIGHT_TEXT)
 	main_vbox.add_child(bet_label)
 	
-	main_vbox.add_child(create_spacer(20))
+	main_vbox.add_child(create_spacer(10))
 	
 	# Bet buttons
 	var bet_hbox = HBoxContainer.new()
 	bet_hbox.alignment = BoxContainer. ALIGNMENT_CENTER
-	bet_hbox.add_theme_constant_override("separation", 25)
-	main_vbox. add_child(bet_hbox)
+	bet_hbox.add_theme_constant_override("separation", 15)
+	main_vbox.add_child(bet_hbox)
 	
 	var bet_amounts = [10, 25, 50, 100]
 	for amount in bet_amounts:
-		var btn = create_button("$" + str(amount), 38)
-		btn.custom_minimum_size = Vector2(140, 70)
+		var btn = create_horror_button("$" + str(amount), 32, Vector2(110, 55))
 		btn.pressed.connect(_on_bet_changed.bind(amount))
-		btn.mouse_entered.connect(_on_button_hover.bind(btn))
-		btn.mouse_exited.connect(_on_button_unhover.bind(btn))
 		bet_hbox.add_child(btn)
 		bet_buttons.append(btn)
 	
-	main_vbox.add_child(create_spacer(30))
-	
-	# Spin button
-	spin_button = create_button("🎰 SPIN 🎰", 64)
-	spin_button.custom_minimum_size = Vector2(500, 120)
-	spin_button.pressed.connect(_on_spin_pressed)
-	spin_button.mouse_entered.connect(_on_button_hover.bind(spin_button))
-	spin_button.mouse_exited.connect(_on_button_unhover.bind(spin_button))
-	main_vbox.add_child(spin_button)
-	
 	main_vbox.add_child(create_spacer(20))
 	
+	# Spin button
+	spin_button = create_horror_button("PULL", 56, Vector2(350, 95), true)
+	spin_button.pressed.connect(_on_spin_pressed)
+	main_vbox.add_child(spin_button)
+	spin_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	
+	main_vbox.add_child(create_spacer(15))
+	
 	# Leave button
-	leave_button = create_button("LEAVE", 38)
-	leave_button.custom_minimum_size = Vector2(250, 70)
+	leave_button = create_horror_button("WALK AWAY", 32, Vector2(200, 55))
 	leave_button.pressed.connect(_on_leave_pressed)
-	leave_button.mouse_entered.connect(_on_button_hover.bind(leave_button))
-	leave_button.mouse_exited.connect(_on_button_unhover.bind(leave_button))
+	leave_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	main_vbox.add_child(leave_button)
 	
-	# Highlight selected bet
 	_on_bet_changed(current_bet)
 
 func create_spacer(height: float) -> Control:
 	var spacer = Control.new()
-	spacer. custom_minimum_size = Vector2(0, height)
+	spacer.custom_minimum_size = Vector2(0, height)
 	return spacer
 
-func create_button(text: String, font_size: int) -> Button:
+func create_horror_button(text: String, font_size: int, min_size: Vector2, is_primary: bool = false) -> Button:
 	var btn = Button.new()
 	btn.text = text
 	btn.add_theme_font_size_override("font_size", font_size)
+	btn.custom_minimum_size = min_size
+	btn.pivot_offset = Vector2.ZERO
+	
+	var base_color = COLOR_DRIED_BLOOD if is_primary else COLOR_BG_PANEL
+	var border_color = COLOR_RUST if is_primary else COLOR_GRIME
 	
 	# Normal
 	var style_normal = StyleBoxFlat.new()
-	style_normal.bg_color = Color(0.3, 0.3, 0.4, 1)
+	style_normal.bg_color = base_color
 	style_normal.set_border_width_all(3)
-	style_normal.border_color = Color(0.5, 0.5, 0.6, 1)
-	style_normal.set_corner_radius_all(10)
-	btn. add_theme_stylebox_override("normal", style_normal)
+	style_normal.border_color = border_color
+	style_normal.set_corner_radius_all(3)
+	btn.add_theme_stylebox_override("normal", style_normal)
+	btn.add_theme_color_override("font_color", COLOR_BRIGHT_TEXT)
 	
 	# Hover
 	var style_hover = StyleBoxFlat.new()
-	style_hover.bg_color = Color(0.5, 0.5, 0.6, 1)
-	style_hover.set_border_width_all(5)
-	style_hover.border_color = Color. GOLD
-	style_hover. set_corner_radius_all(10)
+	style_hover.bg_color = base_color.lightened(0.2)
+	style_hover.set_border_width_all(3)
+	style_hover.border_color = COLOR_DIRTY_GOLD
+	style_hover.set_corner_radius_all(3)
 	btn.add_theme_stylebox_override("hover", style_hover)
+	btn.add_theme_color_override("font_hover_color", COLOR_DIRTY_GOLD)
 	
 	# Pressed
 	var style_pressed = StyleBoxFlat.new()
-	style_pressed.bg_color = Color(0.2, 0.2, 0.3, 1)
+	style_pressed.bg_color = base_color.darkened(0.15)
 	style_pressed.set_border_width_all(3)
-	style_pressed.border_color = Color.GOLD
-	style_pressed.set_corner_radius_all(10)
+	style_pressed.border_color = COLOR_RUST
+	style_pressed.set_corner_radius_all(3)
 	btn.add_theme_stylebox_override("pressed", style_pressed)
+	btn.add_theme_color_override("font_pressed_color", COLOR_WARNING)
 	
 	# Disabled
 	var style_disabled = StyleBoxFlat.new()
-	style_disabled.bg_color = Color(0.2, 0.2, 0.2, 1)
+	style_disabled.bg_color = Color(0.15, 0.12, 0.12, 0.6)
 	style_disabled.set_border_width_all(3)
-	style_disabled.border_color = Color(0.3, 0.3, 0.3, 1)
-	style_disabled.set_corner_radius_all(10)
+	style_disabled.border_color = Color(0.3, 0.25, 0.25, 0.6)
+	style_disabled.set_corner_radius_all(3)
 	btn.add_theme_stylebox_override("disabled", style_disabled)
+	btn.add_theme_color_override("font_disabled_color", Color(0.4, 0.35, 0.35, 0.6))
 	
 	return btn
 
-func _on_button_hover(button: Button):
-	if button.disabled:
-		return
-	var tween = create_tween()
-	tween.tween_property(button, "scale", Vector2(1.05, 1.05), 0.1)
-
-func _on_button_unhover(button: Button):
-	var tween = create_tween()
-	tween.tween_property(button, "scale", Vector2. ONE, 0.1)
-
 func generate_reel_strips():
-	reel_strips. clear()
+	reel_strips.clear()
 	for reel_index in range(3):
-		var strip: Array = []
+		var strip:  Array = []
 		for position in range(40):
 			strip.append(get_weighted_random_symbol())
 		reel_strips.append(strip)
 
 func get_weighted_random_symbol() -> String:
-	var total_weight: float = 0.0
+	var total_weight:  float = 0.0
 	for symbol_data in SYMBOLS.values():
 		total_weight += symbol_data. weight
 	
 	var random_value = randf() * total_weight
-	var cumulative: float = 0.0
+	var cumulative:  float = 0.0
 	
 	for symbol_key in SYMBOLS.keys():
-		cumulative += SYMBOLS[symbol_key].weight
+		cumulative += SYMBOLS[symbol_key]. weight
 		if random_value <= cumulative:
 			return symbol_key
 	
-	return "cherry"
+	return "skull"
 
 func initialize_game():
-	print("🎰 initialize_game()")
 	visible = true
-	update_balance_display()
 	update_bet_display()
 	win_label.visible = false
 	is_spinning = false
 	spin_button.disabled = false
-	display_reel_symbols("🎰", "🎰", "🎰")
+	display_reel_symbols("? ", "? ", "?")
 
 func set_interactive(interactive: bool):
-	print("⚙️ set_interactive(", interactive, ")")
 	is_interactive = interactive
 	spin_button.disabled = not interactive or is_spinning
 	leave_button.disabled = not interactive or is_spinning
@@ -277,24 +300,18 @@ func set_interactive(interactive: bool):
 		btn.disabled = not interactive or is_spinning
 
 func _on_spin_pressed():
-	print("\n🎰🎰🎰 SPIN PRESSED! 🎰🎰🎰")
 	
 	if not is_interactive:
-		print("   ❌ Not interactive")
 		return
 		
-	if is_spinning:
-		print("   ❌ Already spinning")
+	if is_spinning: 
 		return
 	
 	if not can_afford_bet():
-		print("   ❌ Can't afford")
 		show_insufficient_funds()
 		return
 	
-	print("   ✅ Starting spin!")
 	deduct_bet()
-	update_balance_display()
 	start_spin()
 
 func can_afford_bet() -> bool:
@@ -308,127 +325,134 @@ func add_winnings(amount: int):
 
 func start_spin():
 	is_spinning = true
-	spin_button. disabled = true
+	spin_button.disabled = true
 	win_label.visible = false
 	
-	var stop_positions: Array = [randi() % 40, randi() % 40, randi() % 40]
-	animate_spin(stop_positions)
+	# Determine when each reel will stop
+	reel_stop_positions = [randi() % 40, randi() % 40, randi() % 40]
+	
+	# Start all reels spinning independently
+	reel_spinning = [true, true, true]
+	
+	# Start coroutines for each reel
+	spin_reel(0, 1.5)
+	spin_reel(1, 2.2)
+	spin_reel(2, 3.0)
+	
+	# Wait for all reels to finish then evaluate
+	await get_tree().create_timer(3.2).timeout
+	evaluate_result()
 
-func animate_spin(stop_positions: Array):
-	var spin_chars = ["🎰", "💫", "✨", "⭐"]
-	var spin_time = 0.0
-	var spin_duration = 2.0
+func spin_reel(reel_index: int, duration: float):
+	var elapsed: float = 0.0
+	var base_speed: float = 0.05  # Fast at start
+	var current_speed: float = base_speed
 	
-	while spin_time < spin_duration:
-		var random_char = spin_chars[randi() % spin_chars.size()]
-		display_reel_symbols(random_char, random_char, random_char)
-		await get_tree().create_timer(0.1).timeout
-		spin_time += 0.1
+	while elapsed < duration:
+		if not reel_spinning[reel_index]:
+			break
+		
+		# Pick a random symbol to display while spinning
+		var random_symbol = symbol_keys[randi() % symbol_keys.size()]
+		reel_labels[reel_index].text = SYMBOLS[random_symbol].char
+		
+		# Slow down near the end
+		var progress = elapsed / duration
+		if progress > 0.7:
+			current_speed = base_speed + (progress - 0.7) * 0.3 
+		
+		await get_tree().create_timer(current_speed).timeout
+		elapsed += current_speed
 	
-	var final_symbols: Array = []
+	# Land
+	reel_spinning[reel_index] = false
+	var final_symbol = reel_strips[reel_index][reel_stop_positions[reel_index]]
+	reel_labels[reel_index].text = SYMBOLS[final_symbol].char
 	
-	var symbol1 = reel_strips[0][stop_positions[0]]
-	reel1_label.text = SYMBOLS[symbol1].char
-	final_symbols.append(symbol1)
-	play_reel_stop_effect(reel1_label)
-	await get_tree().create_timer(0.4).timeout
+	# Flash effect on stop
+	play_reel_stop_effect(reel_labels[reel_index])
+
+func play_reel_stop_effect(reel_label: Label):
+	reel_label.add_theme_color_override("font_color", COLOR_DIRTY_GOLD)
+	await get_tree().create_timer(0.12).timeout
+	reel_label.add_theme_color_override("font_color", COLOR_BRIGHT_TEXT)
+
+func evaluate_result():
+	var final_symbols:  Array = []
 	
-	var symbol2 = reel_strips[1][stop_positions[1]]
-	reel2_label.text = SYMBOLS[symbol2].char
-	final_symbols.append(symbol2)
-	play_reel_stop_effect(reel2_label)
-	await get_tree().create_timer(0.4).timeout
+	for i in range(3):
+		var symbol = reel_strips[i][reel_stop_positions[i]]
+		final_symbols.append(symbol)
 	
-	var symbol3 = reel_strips[2][stop_positions[2]]
-	reel3_label.text = SYMBOLS[symbol3].char
-	final_symbols.append(symbol3)
-	play_reel_stop_effect(reel3_label)
-	await get_tree().create_timer(0.3).timeout
+	var base_winnings:  int = 0
+	var win_message: String = ""
+	var is_jackpot: bool = false
 	
-	evaluate_spin(final_symbols)
+	if final_symbols[0] == final_symbols[1] and final_symbols[1] == final_symbols[2]:
+		var symbol_data = SYMBOLS[final_symbols[0]]
+		base_winnings = current_bet * symbol_data.payout_3
+		win_message = "+$%d" % base_winnings
+		if final_symbols[0] == "demon":
+			is_jackpot = true
+			win_message = "CLAIMED:  $%d" % base_winnings
+	elif final_symbols[0] == final_symbols[1] and SYMBOLS[final_symbols[0]].payout_2 > 0:
+		var symbol_data = SYMBOLS[final_symbols[0]]
+		base_winnings = current_bet * symbol_data.payout_2
+		win_message = "+$%d" % base_winnings
+	
+	if base_winnings > 0:
+		add_winnings(base_winnings)
+		show_win(win_message, is_jackpot)
+	else:
+		show_loss()
+	
+	spin_completed. emit(final_symbols, base_winnings)
+	
+	is_spinning = false
+	spin_button.disabled = false
+	slot_finished.emit()
 
 func display_reel_symbols(sym1: String, sym2: String, sym3: String):
 	reel1_label.text = sym1
 	reel2_label.text = sym2
 	reel3_label.text = sym3
 
-func play_reel_stop_effect(reel_label: Label):
-	var tween = create_tween()
-	tween.tween_property(reel_label, "scale", Vector2(1.2, 1.2), 0.1)
-	tween.tween_property(reel_label, "scale", Vector2. ONE, 0.1)
-
-func evaluate_spin(symbols: Array):
-	var base_winnings: int = 0
-	var win_message: String = ""
-	var is_jackpot: bool = false
-	
-	if symbols[0] == symbols[1] and symbols[1] == symbols[2]:
-		var symbol_data = SYMBOLS[symbols[0]]
-		base_winnings = current_bet * symbol_data.payout_3
-		win_message = "WIN: $%d (%s %s %s)!" % [base_winnings, symbol_data.char, symbol_data.char, symbol_data.char]
-		if symbols[0] == "crown":
-			is_jackpot = true
-	elif symbols[0] == symbols[1] and SYMBOLS[symbols[0]].payout_2 > 0:
-		var symbol_data = SYMBOLS[symbols[0]]
-		base_winnings = current_bet * symbol_data. payout_2
-		win_message = "WIN: $%d (%s %s)" % [base_winnings, symbol_data.char, symbol_data.char]
-	
-	var final_winnings = base_winnings
-	
-	if final_winnings > 0:
-		add_winnings(final_winnings)
-		show_win(win_message, is_jackpot)
-	else:
-		show_loss()
-	
-	update_balance_display()
-	spin_completed. emit(symbols, final_winnings)
-	
-	is_spinning = false
-	spin_button.disabled = false
-	slot_finished.emit()
-
 func show_win(message: String, is_jackpot: bool = false):
-	win_label. text = message
-	win_label.modulate = Color. GOLD if is_jackpot else Color. GREEN
+	win_label.text = message
+	win_label.add_theme_color_override("font_color", COLOR_WARNING if is_jackpot else COLOR_SICKLY_GREEN)
 	win_label.visible = true
-	
-	var tween = create_tween()
-	tween.tween_property(win_label, "scale", Vector2(1.3, 1.3), 0.2)
-	tween. tween_property(win_label, "scale", Vector2.ONE, 0.2)
 	
 	if is_jackpot:
 		flash_screen()
 
 func show_loss():
-	win_label.text = "No win..."
-	win_label.modulate = Color. GRAY
+	win_label.text = "..."
+	win_label.add_theme_color_override("font_color", COLOR_GRIME)
 	win_label.visible = true
 
 func show_insufficient_funds():
-	win_label.text = "INSUFFICIENT FUNDS!"
-	win_label.modulate = Color.RED
+	win_label.text = "EMPTY POCKETS"
+	win_label. add_theme_color_override("font_color", COLOR_WARNING)
 	win_label.visible = true
 	
 	await get_tree().create_timer(1.5).timeout
 	var tween = create_tween()
-	tween.tween_property(win_label, "modulate:a", 0.0, 0.5)
+	tween.tween_property(win_label, "modulate: a", 0.0, 0.5)
 
 func flash_screen():
 	var flash = ColorRect.new()
-	flash. color = Color(1, 1, 0, 0.3)
+	flash.color = Color(0.5, 0.15, 0.15, 0.4)
 	flash.set_anchors_and_offsets_preset(Control. PRESET_FULL_RECT)
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(flash)
 	
 	var tween = create_tween()
-	tween.tween_property(flash, "modulate:a", 0.0, 0.5)
+	tween.tween_property(flash, "modulate:a", 0.0, 0.8)
 	tween.tween_callback(flash.queue_free)
 
-func update_balance_display():
-	balance_label.text = "Balance: $%d" % GameManager.player_money
 
 func update_bet_display():
-	bet_label.text = "Bet: $%d" % current_bet
+	bet_label.text = "WAGER: $%d" % current_bet
 
 func _on_bet_changed(new_bet: int):
 	current_bet = new_bet
@@ -436,28 +460,26 @@ func _on_bet_changed(new_bet: int):
 	
 	for btn in bet_buttons:
 		if btn.text == "$" + str(new_bet):
-			btn.modulate = Color.YELLOW
-		else:
-			btn. modulate = Color.WHITE
+			btn.modulate = COLOR_DIRTY_GOLD
+		else: 
+			btn.modulate = Color. WHITE
 
 func _on_leave_pressed():
 	if is_spinning:
 		return
-	print("🚪 Leave pressed!")
 	leave_requested.emit()
 
 func get_button_at_position(pos: Vector2) -> Button:
-	"""Find which button is at the given viewport position"""
+	# Find which button is at the given viewport position
 	var all_buttons = [spin_button, leave_button] + bet_buttons
 	
-	for btn in all_buttons:
+	for btn in all_buttons: 
 		if not btn or btn.disabled:
 			continue
 		
 		var btn_rect = btn.get_global_rect()
 		
 		if btn_rect.has_point(pos):
-			print("   🎯 Found button: ", btn. text)
 			return btn
 	
 	return null

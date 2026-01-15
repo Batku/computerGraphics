@@ -1,11 +1,30 @@
-[gd_scene load_steps=9 format=3 uid="uid://dk1qeimeumbqt"]
+[gd_scene load_steps=12 format=3 uid="uid://dk1qeimeumbqt"]
 
 [ext_resource type="PackedScene" uid="uid://cc1tym38r2iso" path="res://scenes/Player.tscn" id="1_5s5h1"]
+[ext_resource type="Texture2D" uid="uid://clhwpe3cew27i" path="res://basecolos/oakfloor_basecolor.png" id="1_jsjgk"]
+[ext_resource type="Shader" uid="uid://linhb2axf1iv" path="res://scenes/player.gdshader" id="2_m4sql"]
 [ext_resource type="PackedScene" uid="uid://b6d7r8pldulyf" path="res://scenes/SlotMachine.tscn" id="2_p7qo8"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_p7qo8"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5s5h1"]
+albedo_texture = ExtResource("1_jsjgk")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_olbtv"]
+shader = ExtResource("2_m4sql")
+shader_parameter/vignette_intensity = 0.4
+shader_parameter/vignette_softness = 0.5
+shader_parameter/grain_amount = 0.15
+shader_parameter/grain_speed = 5.0
+shader_parameter/aberration_amount = 0.003
+shader_parameter/desaturation = 0.6
+shader_parameter/color_tint = Color(0.9, 0.85, 0.75, 1)
+shader_parameter/contrast = 1.15
+shader_parameter/brightness = -0.05
+shader_parameter/scanline_intensity = 0.1
+shader_parameter/scanline_count = 400.0
+shader_parameter/distortion_amount = 0.0
+shader_parameter/flicker_intensity = 0.03
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_5s5h1"]
 size = Vector3(1.9883423, 1, 1.9824829)
@@ -40,11 +59,20 @@ mesh = SubResource("PlaneMesh_p7qo8")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_5s5h1")
 
+[node name="CanvasLayer" type="CanvasLayer" parent="StaticBody3D/MeshInstance3D"]
+layer = 100
+
+[node name="ColorRect" type="ColorRect" parent="StaticBody3D/MeshInstance3D/CanvasLayer"]
+material = SubResource("ShaderMaterial_olbtv")
+offset_right = 40.0
+offset_bottom = 40.0
+metadata/_edit_use_anchors_ = true
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
 transform = Transform3D(25.618206, 0, 0, 0, 0.09999474, 0, 0, 0, 25.628653, 0, 0, 0)
 shape = SubResource("BoxShape3D_5s5h1")
 
-[node name="Player" parent="." groups=["player"] instance=ExtResource("1_5s5h1")]
+[node name="Player" parent="." instance=ExtResource("1_5s5h1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.050244, 1.812593, 4.813268)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]

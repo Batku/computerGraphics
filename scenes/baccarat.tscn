@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://c84v1lw45jx4q"]
+
+[ext_resource type="PackedScene" uid="uid://dd22k15sw7ftw" path="res://assets/Models/BaccaratTable.glb" id="1_nmj36"]
+
+[node name="Baccarat" type="Node3D"]
+
+[node name="BaccaratTable2" parent="." instance=ExtResource("1_nmj36")]

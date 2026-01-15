@@ -18,6 +18,11 @@ extends Node3D
 @export var slot_machines_per_room: int = 3
 @export var roulette_tables_per_floor: int = 2
 @export var player: Node3D
+@export var floormat: StandardMaterial3D
+@export var wallmat: StandardMaterial3D
+@export var roofmat: StandardMaterial3D
+
+@export var enemy_scene: PackedScene
 
 enum CellType {
 	EMPTY,
@@ -119,6 +124,14 @@ func generate_casino():
 	visualize_casino()
 	add_casino_props()
 	teleport_player_to_start()
+	
+		# Wait for geometry to be ready, then bake nav
+	await get_tree().create_timer(0.5).timeout
+	setup_navigation()
+	
+	# Wait for nav to bake, then spawn enemy
+	await get_tree().create_timer(0.5).timeout
+	spawn_enemy()
 	
 	print("Casino generated - Total rooms: ", rooms.size())
 
@@ -391,23 +404,24 @@ func visualize_grid(floor: int):
 				y * cell_size + cell_size / 2.0
 			)
 			
-			var material = StandardMaterial3D.new()
+			var material = floormat
+			floor_instance.add_to_group("navmesh_geometry")
 			
-			if cell.type == CellType.ROOM:
-				var room = get_room_by_id(cell.room_id)
-				if room:
-					if room.is_start:
-						material.albedo_color = Color.GREEN
-					elif room.is_end:
-						material.albedo_color = Color.RED
-					elif room.has_stairs:
-						material.albedo_color = Color.ORANGE
-					else:
-						material.albedo_color = Color.GRAY
-				else:
-					material.albedo_color = Color.GRAY
-			elif cell.type == CellType.CORRIDOR:
-				material.albedo_color = Color(0.5, 0.5, 0.5)
+			#if cell.type == CellType.ROOM:
+			#	var room = get_room_by_id(cell.room_id)
+			#	if room:
+			#		if room.is_start:
+			#			material.albedo_color = Color.GREEN
+			#		elif room.is_end:
+			#			material.albedo_color = Color.RED
+			#		elif room.has_stairs:
+			#			material.albedo_color = Color.ORANGE
+			#		else:
+			#			material.albedo_color = Color.GRAY
+			#	else:
+			#		material.albedo_color = Color.GRAY
+			#elif cell.type == CellType.CORRIDOR:
+			#	material.albedo_color = Color(0.5, 0.5, 0.5)
 			
 			floor_instance.material_override = material
 			add_child(floor_instance)
@@ -420,8 +434,8 @@ func visualize_grid(floor: int):
 
 @warning_ignore("shadowed_global_identifier")
 func create_ceilings(floor: int):
-	var ceiling_material = StandardMaterial3D.new()
-	ceiling_material.albedo_color = Color(0.4, 0.4, 0.4)
+	var ceiling_material = roofmat
+	#ceiling_material.albedo_color = Color(0.4, 0.4, 0.4)
 	var ceiling_y = (floor + 1) * floor_height - 0.1
 	
 	for y in range(grid_height):
@@ -489,8 +503,8 @@ func handle_corridor_neighbor(
 	create_wall(wall_pos, wall_size, wall_material)
 @warning_ignore("shadowed_global_identifier")
 func create_cell_walls(floor: int, x: int, y: int):
-	var wall_material = StandardMaterial3D.new()
-	wall_material.albedo_color = Color(0.3, 0.3, 0.3)
+	var wall_material = wallmat
+	#wall_material.albedo_color = Color(0.3, 0.3, 0.3)
 	var unlock_material = StandardMaterial3D.new()
 	unlock_material.albedo_color = Color(0.776, 0.11, 0.212, 0.733)
 	unlock_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -671,11 +685,11 @@ func add_slot_machines():
 				0:
 					x = randi_range(room.grid_x + 1, room.grid_x + room.width - 2)
 					y = room.grid_y
-					rotation_y = PI
+					rotation_y = 0
 				1:
 					x = randi_range(room.grid_x + 1, room.grid_x + room.width - 2)
 					y = room.grid_y + room.height - 1
-					rotation_y = 0.0
+					rotation_y = PI
 				2:
 					x = room.grid_x
 					y = randi_range(room.grid_y + 1, room.grid_y + room.height - 2)
@@ -719,3 +733,75 @@ func clear_casino():
 	grids.clear()
 	rooms.clear()
 	room_counter = 0
+
+func setup_navigation():
+	var nav_region = NavigationRegion3D.new()
+	nav_region.name = "NavRegion"
+	add_child(nav_region)
+	
+	var nav_mesh = NavigationMesh. new()
+	
+	# Agent settings
+	nav_mesh.agent_radius = 0.4
+	nav_mesh.agent_height = 1.8
+	nav_mesh.agent_max_climb = 0.5
+	nav_mesh.agent_max_slope = 45.0
+	
+	# Cell settings
+	nav_mesh.cell_size = 0.25
+	nav_mesh.cell_height = 0.25
+	
+	# USE MESH INSTANCES instead of colliders
+	nav_mesh.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_MESH_INSTANCES
+	nav_mesh.geometry_source_geometry_mode = NavigationMesh.SOURCE_GEOMETRY_GROUPS_WITH_CHILDREN
+	nav_mesh.geometry_source_group_name = "navmesh_geometry"
+	
+	nav_region.navigation_mesh = nav_mesh
+	
+	print("🗺Baking navigation mesh...")
+	nav_region.bake_navigation_mesh()
+	
+	await get_tree().process_frame
+	var poly_count = nav_mesh.get_polygon_count()
+	print("Navigation mesh baked! Polygons: ", poly_count)
+	
+func spawn_enemy():
+	if not enemy_scene:
+		push_warning("Enemy scene not set!")
+		return
+	
+	# Find room far from start
+	var spawn_room:  Room = null
+	var max_dist: float = 0.0
+	
+	for room in rooms: 
+		if room.is_start or room.is_end:
+			continue
+		
+		var dist = room.get_center_cell().distance_to(rooms[0].get_center_cell())
+		if dist > max_dist: 
+			max_dist = dist
+			spawn_room = room
+	
+	if not spawn_room: 
+		spawn_room = rooms[rooms.size() - 1]
+	
+	var enemy = enemy_scene.instantiate()
+	add_child(enemy)
+	
+	var pos = spawn_room.get_world_center(cell_size, floor_height)
+	pos.y = spawn_room.floor_level * floor_height + 0.1  # On the floor, not floating
+	enemy.global_position = pos
+	enemy.set_target(player)
+	
+	# Connect signals
+	enemy.chase_started.connect(_on_chase_started)
+	enemy.player_caught.connect(_on_player_caught)
+	
+	print("Enemy spawned at: ", pos)
+
+func _on_chase_started(demand: int):
+	print("Chase started!  Demand: $", demand)
+
+func _on_player_caught():
+	print("GAME OVER!")
